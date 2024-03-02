@@ -7,21 +7,27 @@ import math
 
 # noinspection PyUnresolvedReferences
 class handDetector:
-    def __init__(self, mode=False, maxHands=2, modelC=1, detectionCon=0.5, trackCon=0.5):
+    def __init__(self, mode=False, maxHands=4, modelC=1, detectionCon=0.5, trackCon=0.5):
         self.mode = mode
         self.maxHands = maxHands
         self.modelC = modelC
         self.detectionCon = detectionCon
         self.trackCon = trackCon
-
+        self.is_game = True
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.modelC, self.detectionCon, self.trackCon)
+        self.hands_full = self.mpHands.Hands(self.mode, 4, self.modelC, self.detectionCon, self.trackCon)
+        self.hands_low = self.mpHands.Hands(self.mode, 1, self.modelC, self.detectionCon, self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils
         self.tipIds = [4, 8, 12, 16, 20]
 
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.results = self.hands.process(imgRGB)
+        if self.is_game:
+            self.results = self.hands_low.process(imgRGB)
+        else:
+            self.results = self.hands_full.process(imgRGB)
+        # self.results = self.hands.process(imgRGB)
 
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
@@ -30,7 +36,7 @@ class handDetector:
 
         return img
 
-    def findPosition(self, img, handNo, draw_circle=True, draw_box=False, colour=(255, 0, 0)):
+    def findPosition(self, img, handNo, draw_circle=True, draw_box=False, colour=(255,0,0)):
         xList = []
         yList = []
         lmList = []
